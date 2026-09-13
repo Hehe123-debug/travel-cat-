@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>旅行小猫</title>
+<style>
+:root{
+  --brown:#6b5140;
+  --wood:#e0b184;
+  --pink:#ffb3c1;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  background:
+    radial-gradient(circle at 15% 0%, #fff2e0 0%, transparent 55%),
+    radial-gradient(circle at 85% 100%, #ffe0cc 0%, transparent 55%),
+    linear-gradient(160deg,#ffeeda,#ffd9c2);
+  color:var(--brown);
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  padding:26px 16px 50px;
+  min-height:100%;
+}
+
+/* ============ 布局 ============ */
+.app{
+  display:flex;gap:26px;align-items:flex-start;
+  width:100%;max-width:980px;
+}
+.panel{
+  width:224px;flex:none;display:flex;flex-direction:column;gap:12px;
+  position:sticky;top:26px;
+}
+.brand{
+  display:flex;align-items:center;gap:8px;
+  font-size:19px;font-weight:800;letter-spacing:2px;
+  padding:0 4px 6px;color:#7a5c46;
+}
+.brand .paw{font-size:20px;animation:wave 2.4s ease-in-out infinite}
+@keyframes wave{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(10deg)}}
+
+.btn{
+  display:flex;align-items:center;gap:12px;
+  padding:13px 15px;border:none;border-radius:18px;
+  background:#fff;
+  box-shadow:0 4px 0 #eccfb6, 0 8px 18px rgba(180,130,95,.12);
+  cursor:pointer;font-family:inherit;color:var(--brown);
+  text-align:left;transition:transform .12s, box-shadow .12s;
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 6px 0 #eccfb6,0 12px 22px rgba(180,130,95,.16)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #eccfb6}
+.btn .ico{font-size:22px;line-height:1;flex:none}
+.btn b{display:block;font-size:15px;font-weight:700}
+.btn small{display:block;font-size:11.5px;color:#a98d78;margin-top:2px;font-weight:400}
+
+.stage{display:flex;flex-direction:column;align-items:center;gap:16px;flex:1;min-width:0}
+
+/* ============ 房子 ============ */
+.house{
+  position:relative;
+  width:460px;height:640px;flex:none;
+  border-radius:30px;
+  background:#fff8f0;
+  box-shadow:
+    0 0 0 10px #fff,
+    0 0 0 13px #f0dcc8,
+    0 26px 50px rgba(170,115,80,.28);
+  overflow:hidden;
+  display:flex;flex-direction:column;
+}
+.floor{position:relative;overflow:hidden;flex:1}
+.floor.up{background:linear-gradient(180deg,#fffaf3 0%,#ffefe2 100%)}
+.floor.down{background:linear-gradient(180deg,#fff4ea 0%,#ffe7d4 100%)}
+
+/* 墙纸圆点 */
+.floor.up::before{
+  content:'';position:absolute;inset:0;
+  background-image:radial-gradient(circle,#ffd9c0 1.6px,transparent 1.7px);
+  background-size:36px 36px;opacity:.55;
+}
+/* 地板 */
+.floor::after{
+  content:'';position:absolute;left:0;right:0;bottom:0;height:24px;z-index:0;
+  background:repeating-linear-gradient(90deg,#e9c8a4 0 62px,#dcb68c 62px 64px);
+  border-top:3px solid #d3a577;
+  box-shadow:0 -5px 12px rgba(190,150,115,.16);
+}
+.divider{
+  height:14px;flex:none;position:relative;z-index:3;
+  background:linear-gradient(180deg,#eccda9,#d3a577);
+  box-shadow:0 3px 8px rgba(150,110,80,.25);
+}
+
+/* ---- 二楼：窗户 ---- */
+.window{
+  position:absolute;left:168px;top:30px;width:124px;height:120px;
+  border-radius:16px;background:#3a3560;
+  border:7px solid #fffaf3;
+  box-shadow:0 0 0 3px #e8cdb0, 0 8px 16px rgba(160,120,90,.25);
+  overflow:hidden;z-index:1;
+}
+.window::before,.window::after{content:'';position:absolute;background:#fffaf3;opacity:.9}
+.window::before{left:50%;top:0;bottom:0;width:5px;transform:translateX(-50%)}
+.window::after{top:50%;left:0;right:0;height:5px;transform:translateY(-50%)}
+.moon{
+  position:absolute;right:12px;top:10px;width:24px;height:24px;border-radius:50%;
+  background:#ffe9a8;box-shadow:0 0 20px #ffe9a8;
+}
+.star{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;animation:twinkle 2.2s infinite}
+.star:nth-child(2){animation-delay:.4s}
+.star:nth-child(3){animation-delay:.9s}
+.star:nth-child(4){animation-delay:1.4s}
+@keyframes twinkle{0%,100%{opacity:.25}50%{opacity:1}}
+
+/* ---- 墙上的小画 ---- */
+.wallpic{
+  position:absolute;left:64px;top:46px;width:64px;height:64px;z-index:1;
+  border-radius:12px;background:#fff;
+  border:5px solid #f3d0ab;
+  display:grid;place-items:center;font-size:26px;
+  box-shadow:0 5px 12px rgba(170,130,95,.18);
+  transform:rotate(-4deg);
+}
+
+/* ---- 床 ---- */
+.bed{position:absolute;left:24px;bottom:26px;width:204px;height:108px;z-index:1}
+.bed-head{
+  position:absolute;left:0;bottom:0;width:22px;height:104px;
+  border-radius:12px 12px 4px 4px;
+  background:linear-gradient(90deg,#dcaa72,#c9915f);
+}
+.bed-mattress{
+  position:absolute;left:10px;bottom:16px;width:194px;height:60px;border-radius:16px;
+  background:#fff6ea;
+  box-shadow:inset 0 -6px 0 #f2e2ce, 0 5px 10px rgba(170,130,95,.2);
+}
+.bed-pillow{
+  position:absolute;left:26px;bottom:46px;width:52px;height:30px;border-radius:14px;
+  background:#fff;box-shadow:inset 0 -4px 0 #f5e6d6, 0 2px 5px rgba(170,130,95,.18);
+}
+.bed-blanket{
+  position:absolute;left:88px;bottom:16px;width:116px;height:56px;
+  border-radius:14px 16px 16px 14px;
+  background:linear-gradient(180deg,#ffc6d2,#ff9fb4);
+  box-shadow:inset 0 -5px 0 rgba(255,255,255,.35);
+}
+
+/* ---- 落地镜 ---- */
+.mirror{position:absolute;left:292px;bottom:26px;width:118px;height:170px;z-index:1}
+.mirror-glass{
+  position:absolute;inset:0;bottom:22px;
+  border-radius:58px 58px 14px 14px;
+  background:linear-gradient(150deg,#d7ecfa 0%,#f2fbff 45%,#cfe4f5 100%);
+  border:9px solid #f0c9a0;
+  box-shadow:0 8px 18px rgba(170,130,95,.24), inset 0 0 26px rgba(255,255,255,.9);
+}
+.mirror-glass::after{
+  content:'';position:absolute;left:16px;top:20px;width:22px;height:70px;
+  border-radius:12px;background:rgba(255,255,255,.75);
+  transform:rotate(14deg);filter:blur(2px);
+}
+.mirror-foot{
+  position:absolute;left:8px;right:8px;bottom:0;height:20px;
+  border-radius:8px;background:linear-gradient(180deg,#e6b98d,#d09a68);
+}
+
+/* ---- 梳妆台 ---- */
+.vanity{position:absolute;left:26px;bottom:26px;width:200px;height:170px;z-index:1}
+.vanity-mirror{
+  position:absolute;left:52px;bottom:80px;width:96px;height:90px;
+  border-radius:48px 48px 12px 12px;
+  background:linear-gradient(150deg,#d7ecfa 0%,#f2fbff 50%,#cfe4f5 100%);
+  border:8px solid #f0c9a0;
+  box-shadow:0 6px 14px rgba(170,130,95,.22), inset 0 0 20px rgba(255,255,255,.9);
+}
+.vanity-mirror::after{
+  content:'';position:absolute;left:12px;top:14px;width:16px;height:40px;
+  border-radius:10px;background:rgba(255,255,255,.8);transform:rotate(14deg);
+}
+.vanity-top{
+  position:absolute;left:0;bottom:66px;width:200px;height:14px;border-radius:8px;
+  background:linear-gradient(180deg,#f5d4b2,#dfb287);
+  box-shadow:0 4px 8px rgba(170,130,95,.2);
+}
+.vanity-drawer{
+  position:absolute;left:16px;bottom:20px;width:168px;height:46px;
+  border-radius:10px;background:#f9e0c6;border:2px solid #e9c5a0;
+}
+.vanity-drawer i{
+  position:absolute;top:50%;width:26px;height:6px;border-radius:3px;
+  background:#e0b184;transform:translateY(-50%);
+}
+.vanity-drawer i:nth-child(1){left:24px}
+.vanity-drawer i:nth-child(2){right:24px}
+.vanity-legs i{position:absolute;bottom:0;width:10px;height:22px;border-radius:4px;background:#d9a066}
+.vanity-legs i:nth-child(1){left:26px}
+.vanity-legs i:nth-child(2){right:26px}
+.bottle{
+  position:absolute;left:146px;bottom:80px;width:16px;height:24px;
+  border-radius:5px 5px 8px 8px;
+  background:linear-gradient(180deg,#ffc2cf,#ff9fb4);
+  box-shadow:0 -6px 0 -4px #e0b184;
+}
+
+/* ---- 椅子 ---- */
+.chair{position:absolute;left:246px;bottom:26px;width:96px;height:120px;z-index:1}
+.chair-back{
+  position:absolute;left:0;bottom:56px;width:22px;height:64px;
+  border-radius:12px 12px 4px 4px;
+  background:linear-gradient(90deg,#e8bd92,#d9a066);
+}
+.chair-seat{
+  position:absolute;left:0;bottom:46px;width:88px;height:14px;border-radius:8px;
+  background:linear-gradient(180deg,#f5d4b2,#dfb287);
+  box-shadow:0 4px 8px rgba(170,130,95,.22);
+}
+.chair-legs i{position:absolute;bottom:0;width:9px;height:48px;border-radius:4px;background:#d9a066}
+.chair-legs i:nth-child(1){left:14px}
+.chair-legs i:nth-child(2){right:14px}
+
+/* ---- 植物 ---- */
+.plant{
+  position:absolute;right:24px;bottom:24px;font-size:62px;line-height:1;z-index:1;
+  filter:drop-shadow(0 5px 8px rgba(170,130,95,.25));
+}
+/* ---- 地毯 ---- */
+.rug{
+  position:absolute;left:130px;bottom:12px;width:190px;height:42px;border-radius:50%;
+  background:rgba(255,196,210,.4);z-index:0;
+}
+.rug.small{left:60px;width:150px;background:rgba(200,230,220,.45)}
+
+/* ---- 行李箱（旅行中） ---- */
+.suitcase{
+  position:absolute;left:352px;bottom:30px;font-size:46px;line-height:1;z-index:1;
+  animation:bob 3s ease-in-out infinite;
+  filter:drop-shadow(0 5px 8px rgba(170,130,95,.3));
+}
+
+/* ---- 小猫 ---- */
+.cat-wrap{
+  position:absolute;z-index:6;pointer-events:none;
+  animation:bob 2.6s ease-in-out infinite;
+}
+.cat-wrap svg{width:100%;height:auto;display:block;filter:drop-shadow(0 7px 8px rgba(180,130,95,.25))}
+.cat-wrap.sleep{animation:bobSlow 4s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes bobSlow{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-3px) scale(1.02)}}
+
+.zzz{
+  position:absolute;font-size:15px;font-weight:800;color:#c2a288;
+  animation:floatZ 2.6s ease-out infinite;opacity:0;
+}
+.zzz.z1{left:70%;top:-6%}
+.zzz.z2{left:84%;top:-20%;font-size:19px;animation-delay:.9s}
+.zzz.z3{left:98%;top:-34%;font-size:13px;animation-delay:1.7s}
+@keyframes floatZ{
+  0%{opacity:0;transform:translateY(6px) scale(.7)}
+  25%{opacity:1}
+  100%{opacity:0;transform:translateY(-16px) scale(1.15)}
+}
+
+/* ============ 状态条 ============ */
+.status{
+  display:flex;align-items:center;gap:9px;
+  background:rgba(255,255,255,.8);
+  padding:11px 20px;border-radius:999px;
+  font-size:14px;color:#7a5c46;font-weight:600;
+  box-shadow:0 6px 16px rgba(180,130,95,.15);
+  max-width:100%;text-align:center;
+}
+.pulse{
+  width:9px;height:9px;border-radius:50%;background:#7fd6a6;flex:none;
+  box-shadow:0 0 0 0 rgba(127,214,166,.6);
+  animation:pulse 1.8s infinite;
+}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 rgba(127,214,166,.6)}
+  70%{box-shadow:0 0 0 10px rgba(127,214,166,0)}
+  100%{box-shadow:0 0 0 0 rgba(127,214,166,0)}
+}
+
+/* ============ 弹窗 ============ */
+.overlay{
+  position:fixed;inset:0;z-index:60;
+  background:rgba(90,60,40,.42);
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;
+  padding:22px;
+}
+.overlay.show{display:flex;animation:fadeIn .18s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.card{
+  position:relative;
+  background:#fffdf8;border-radius:26px;
+  padding:26px;width:100%;max-width:660px;max-height:86vh;overflow:auto;
+  box-shadow:0 28px 64px rgba(80,50,30,.34);
+  animation:pop .3s cubic-bezier(.2,1.3,.5,1);
+}
+@keyframes pop{from{transform:scale(.92) translateY(14px);opacity:0}to{transform:none;opacity:1}}
+
+.close{
+  position:absolute;right:16px;top:16px;
+  width:34px;height:34px;border-radius:50%;border:none;
+  background:#f6e6d6;color:#a98d78;font-size:16px;cursor:pointer;
+  display:grid;place-items:center;transition:.15s;
+}
+.close:hover{background:#efd8c2;transform:rotate(90deg)}
+
+.card-head{
+  display:flex;align-items:center;gap:10px;
+  font-size:17px;font-weight:800;margin-bottom:16px;color:#7a5c46;
+}
+.card-head .stamp{
+  margin-left:auto;font-size:11px;color:#b39a85;font-weight:500;
+  border:2px dashed #e6cdb4;border-radius:8px;padding:4px 9px;
+}
+
+/* 信件 */
+.letter{
+  background:
+    repeating-linear-gradient(180deg, transparent 0 31px, #f2e3d1 31px 32px),
+    #fffaf2;
+  border:1px solid #f2e3d1;border-radius:16px;
+  padding:20px 22px;font-size:15px;line-height:32px;
+  white-space:pre-wrap;color:#6b5140;
+}
+.letter-from{
+  margin-top:16px;font-size:13px;color:#a98d78;
+  display:flex;align-items:center;gap:6px;
+}
+
+/* 礼物 */
+.gift-box{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:10px 0 4px}
+.gift-emoji{
+  font-size:74px;line-height:1;
+  animation:giftFloat 3s ease-in-out infinite;
+  filter:drop-shadow(0 12px 14px rgba(180,130,95,.28));
+}
+@keyframes giftFloat{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-10px) rotate(4deg)}}
+.gift-name{font-size:20px;font-weight:800;margin-top:14px;color:#7a5c46}
+.gift-desc{font-size:14px;color:#a0846d;line-height:1.8;max-width:420px}
+.gift-from{
+  margin-top:16px;font-size:13px;color:#a98d78;
+  background:#f8ecdf;border-radius:999px;padding:6px 16px;
+}
+
+/* 地图 */
+.map-box{
+  position:relative;width:100%;aspect-ratio:2/1;
+  border-radius:18px;overflow:hidden;
+  background:linear-gradient(180deg,#ddf0ff,#c9e6ff);
+  box-shadow:inset 0 0 30px rgba(120,170,210,.25);
+}
+.map-box svg{width:100%;height:100%;display:block}
+.pin{
+  position:absolute;transform:translate(-50%,-50%);
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  animation:pinIn .45s backwards cubic-bezier(.2,1.4,.5,1);
+}
+@keyframes pinIn{from{opacity:0;transform:translate(-50%,-30%) scale(.4)}to{opacity:1}}
+.pin .head{
+  width:26px;height:26px;border-radius:50%;background:#fff;
+  display:grid;place-items:center;font-size:15px;
+  border:2px solid #ffb3c1;
+  box-shadow:0 3px 8px rgba(90,60,40,.28);
+}
+.pin .label{
+  font-size:10px;background:rgba(255,255,255,.92);
+  padding:1px 6px;border-radius:7px;white-space:nowrap;color:#6b5140;
+  box-shadow:0 1px 4px rgba(90,60,40,.15);
+}
+.map-empty{
+  position:absolute;inset:0;display:grid;place-items:center;
+  color:#7fa3bd;font-size:14px;font-weight:600;text-align:center;padding:20px;
+}
+.map-foot{margin-top:14px;font-size:13px;color:#a98d78;text-align:center}
+
+/* ============ 响应式 ============ */
+@media (max-width:900px){
+  .app{flex-direction:column-reverse;align-items:center;gap:18px}
+  .panel{width:100%;flex-direction:row;flex-wrap:wrap;position:static;gap:10px}
+  .brand{width:100%;justify-content:center;padding-bottom:0}
+  .btn{flex:1;min-width:140px}
+}
+@media (max-width:560px){
+  body{padding:16px 10px 40px}
+  .house{transform:scale(.74);transform-origin:top center;margin-bottom:-168px}
+  .panel{flex-direction:column}
+  .btn{min-width:0}
+  .gift-emoji{font-size:58px}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- 左侧按钮 -->
+  <aside class="panel">
+    <div class="brand"><span class="paw">🐾</span> 旅行小猫</div>
+
+    <button class="btn" id="btnLetter">
+      <span class="ico">💌</span>
+      <span><b>小猫的信</b><small>它不在家时写的信</small></span>
+    </button>
+
+    <button class="btn" id="btnGift">
+      <span class="ico">🎁</span>
+      <span><b>小猫的礼物</b><small>从远方带回来的</small></span>
+    </button>
+
+    <button class="btn" id="btnMap">
+      <span class="ico">🗺️</span>
+      <span><b>旅行地图</b><small>它去过的地方</small></span>
+    </button>
+  </aside>
+
+  <!-- 房子 -->
+  <main class="stage">
+    <div class="house" id="house">
+      <!-- 二楼 -->
+      <div class="floor up" id="upFloor">
+        <div class="window">
+          <span class="moon"></span>
+          <span class="star" style="left:18%;top:32%"></span>
+          <span class="star" style="left:72%;top:20%"></span>
+          <span class="star" style="left:44%;top:66%"></span>
+        </div>
+        <div class="wallpic">🐟</div>
+        <div class="rug"></div>
+
+        <div class="bed">
+          <div class="bed-head"></div>
+          <div class="bed-mattress"></div>
+          <div class="bed-blanket"></div>
+          <div class="bed-pillow"></div>
+        </div>
+
+        <div class="mirror">
+          <div class="mirror-glass"></div>
+          <div class="mirror-foot"></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- 一楼 -->
+      <div class="floor down" id="downFloor">
+        <div class="rug small"></div>
+
+        <div class="vanity">
+          <div class="vanity-mirror"></div>
+          <div class="vanity-top"></div>
+          <div class="vanity-drawer"><i></i><i></i></div>
+          <div class="vanity-legs"><i></i><i></i></div>
+          <div class="bottle"></div>
+        </div>
+
+        <div class="chair">
+          <div class="chair-back"></div>
+          <div class="chair-seat"></div>
+          <div class="chair-legs"><i></i><i></i></div>
+        </div>
+
+        <div class="plant">🪴</div>
+      </div>
+    </div>
+
+    <div class="status">
+      <span class="pulse"></span>
+      <span id="statusText">…</span>
+    </div>
+  </main>
+</div>
+
+<!-- 弹窗 -->
+<div class="overlay" id="overlay">
+  <div class="card" id="card">
+    <button class="close" id="closeBtn">✕</button>
+    <div id="cardContent"></div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   数据
+========================================================= */
+const PLACES = [
+  {name:'东京',   x:872, y:142, emoji:'🗼'},
+  {name:'京都',   x:846, y:158, emoji:'⛩️'},
+  {name:'首尔',   x:818, y:140, emoji:'🏯'},
+  {name:'北京',   x:790, y:118, emoji:'🏮'},
+  {name:'上海',   x:812, y:152, emoji:'🌃'},
+  {name:'曼谷',   x:762, y:208, emoji:'🛕'},
+  {name:'新加坡', x:760, y:240, emoji:'🦁'},
+  {name:'巴厘岛', x:806, y:258, emoji:'🌴'},
+  {name:'悉尼',   x:886, y:378, emoji:'🎡'},
+  {name:'皇后镇', x:936, y:404, emoji:'🏔️'},
+  {name:'伦敦',   x:478, y:92,  emoji:'🎡'},
+  {name:'巴黎',   x:500, y:112, emoji:'🗼'},
+  {name:'阿姆斯特丹', x:496, y:86, emoji:'🌷'},
+  {name:'布拉格', x:524, y:102, emoji:'🏰'},
+  {name:'罗马',   x:528, y:132, emoji:'🍝'},
+  {name:'雅典',   x:548, y:146, emoji:'🏛️'},
+  {name:'伊斯坦布尔', x:578, y:130, emoji:'🕌'},
+  {name:'莫斯科', x:608, y:86,  emoji:'❄️'},
+  {name:'赫尔辛基', x:556, y:72, emoji:'🌌'},
+  {name:'雷克雅未克', x:428, y:66, emoji:'🌋'},
+  {name:'马拉喀什', x:482, y:180, emoji:'🐪'},
+  {name:'开罗',   x:552, y:188, emoji:'🐫'},
+  {name:'开普敦', x:548, y:376, emoji:'🐧'},
+  {name:'纽约',   x:256, y:140, emoji:'🗽'},
+  {name:'旧金山', x:132, y:166, emoji:'🌉'},
+  {name:'温哥华', x:162, y:104, emoji:'🍁'},
+  {name:'墨西哥城', x:206, y:208, emoji:'🌵'},
+  {name:'利马',   x:248, y:318, emoji:'🦙'},
+  {name:'里约',   x:288, y:330, emoji:'🎭'}
+];
+
+const FOODS  = ['黄油','小鱼干','牛奶','烤面包','章鱼烧','肉桂','橘子','海盐'];
+const THINGS = ['一碗热汤','一串烤鱼','一块奶酪蛋糕','一颗糖','一碟小鱼'];
+
+const LETTERS = [
+`亲爱的铲屎官：
+
+我到{place}啦。
+这里的风有一股{food}的香味，我顺着味道走了三条街，
+最后发现是一家小小的面包店。
+
+老板给了我一块饼干。我没舍得全吃完，
+留了一半给你——好吧，其实只留了一小块。
+
+今晚我睡在屋顶上，星星比家里窗外的多。
+
+—— 想你的小猫`,
+
+`嗨，是我。
+
+{place}在下雨。
+我躲在一家书店的屋檐下待了一整个下午。
+书上的字我是不认识的，但插图很好看，
+里面有一只和我长得很像的猫。
+
+我记住了那一页，回家讲给你听。
+
+—— 你的猫`,
+
+`致我最亲爱的铲屎官：
+
+今天我在{place}迷路了。
+不过别担心，迷路的时候我遇到了三只猫，
+它们请我吃了{thing}，还带我去看了海。
+
+我好像交到新朋友了。
+你不会吃醋吧？……会的吧？
+
+—— 小猫`,
+
+`铲屎官亲启：
+
+{place}的早晨很安静。
+我在一家咖啡店门口坐了很久，
+有人摸了摸我的头，说我是只好看的猫。
+
+我当然是。但我没有理他，
+因为我在想你。
+
+—— 你的小猫`,
+
+`汇报一下：
+
+我已抵达{place}。
+这里的太阳晒得我胡须都卷了，
+我在一棵大树下睡了三个小时。
+
+梦里有你，还有一整条鱼。
+醒来发现只是一片叶子。
+
+—— 小猫`,
+
+`亲爱的：
+
+{place}的夜市好热闹。
+我看到了会发光的灯笼、会转的风车，
+还有一只很凶的橘猫，它抢走了我的小鱼干。
+
+我没有哭。
+我只是在墙角坐了很久很久。
+
+……好吧，我哭了。
+
+—— 需要安慰的小猫`,
+
+`给你：
+
+我在{place}的山顶上看到了日出。
+天空一点一点亮起来的时候，
+我忽然很想跑回家，跳上你的膝盖。
+
+但我还是看完了整个日出，
+因为好东西要看完才不算浪费。
+
+—— 小猫`,
+
+`嘿：
+
+我在{place}的邮局写这封信。
+这里的人写字都很好看，只有我的爪印很潦草。
+
+随信附上一根我掉的胡须。
+别弄丢了，那可是我最好看的一根。
+
+—— 你的猫`,
+
+`铲屎官：
+
+{place}的雪下得好大。
+我的爪子踩上去，会留下小小的梅花印。
+我沿着一条街走了很久，
+回头看的时候，脚印已经不见了。
+
+有点难过。所以我决定回家。
+
+—— 快到家的小猫`,
+
+`亲爱的：
+
+今天我在{place}的海边捡到了一枚贝壳。
+他们说把贝壳贴在耳朵上，能听见海的声音。
+
+我听见了。
+但里面传出来的，好像是你的呼噜声。
+
+—— 你的小猫`,
+
+`报告：
+
+{place}的猫都比我胖。
+我观察了很久，发现它们一天要吃四顿。
+我决定向它们学习。
+
+所以回家以后，请给我加餐。
+这是为了科学。
+
+—— 你的小猫`,
+
+`致家里那个总在等我的人：
+
+今天在{place}，我爬上了一座很高的塔。
+从上面往下看，所有的房子都变成了小方块，
+所有的人都很小很小。
+
+我想，如果我现在回家，
+你一定会把我抱起来。
+
+所以我明天就出发。
+
+—— 小猫`
+];
+
+const GIFTS = [
+  {e:'🐚', n:'一枚会唱歌的贝壳', d:'贴在耳朵上能听见海的声音。……也可能只是它在打呼噜。'},
+  {e:'🍁', n:'一片红色的枫叶', d:'被压得平平整整，夹在信纸里一起寄回来的。'},
+  {e:'🪶', n:'一根漂亮的羽毛', d:'不知道是什么鸟的。小猫说它追了整整一条街才捡到。'},
+  {e:'🌰', n:'一颗圆滚滚的橡果', d:'上面有小小的牙印。别问了。'},
+  {e:'🔔', n:'一个小铃铛', d:'和它脖子上那个是一对。它说这样你就能听见它回家的声音。'},
+  {e:'🗺️', n:'一张手绘的地图', d:'画得歪歪扭扭，终点歪歪扭扭地写着两个字："家"。'},
+  {e:'🧶', n:'一团来历不明的毛线', d:'颜色很好看。小猫不肯说是在哪里拿的。'},
+  {e:'🌸', n:'一朵压扁的花', d:'花瓣是淡粉色的，闻起来像春天，也像小猫的耳朵。'},
+  {e:'🪨', n:'一块圆圆的鹅卵石', d:'被海水磨得很光滑，摸起来像小猫的肉垫。'},
+  {e:'🍬', n:'一颗水果糖', d:'包装纸有点皱了。它说在口袋里放了很久，一直舍不得吃。'},
+  {e:'🌙', n:'一小瓶月光', d:'其实是装萤火虫的玻璃瓶。晚上看的时候真的会亮。'},
+  {e:'🐟', n:'一片晒干的小鱼干', d:'有点咸。它说这是它见过最大的一片。'},
+  {e:'📮', n:'一张用过的邮票', d:'图案是一只猫。它说这只猫长得很像它，所以买下来了。'},
+  {e:'🧦', n:'一只迷路的袜子', d:'不是它的，也不是你的。它说"捡到就是我的了"。'},
+  {e:'🎐', n:'一只小小的风铃', d:'风一吹就会响。它说这是从别人家屋檐下"借"来的。'},
+  {e:'🫧', n:'一瓶泡泡水', d:'只剩半瓶了。剩下半瓶在回来的路上被它吹完了。'}
+];
+
+const STATES = [
+  {key:'sleep',  tip:'呼噜呼噜……小猫正在床上做小鱼干的梦 💤'},
+  {key:'mirror', tip:'小猫站在镜子前，好像在确认今天的自己有多可爱 ✨'},
+  {key:'chair',  tip:'小猫坐在梳妆台前，正在挑今天要戴的小铃铛 🎀'},
+  {key:'travel', tip:'家里空荡荡的……小猫出门旅行啦 ✈️'}
+];
+
+const CAT_POS = {
+  sleep:  {floor:'up',   left:104, bottom:88, size:78},
+  mirror: {floor:'up',   left:244, bottom:40, size:78},
+  chair:  {floor:'down', left:256, bottom:84, size:74}
+};
+
+/* =========================================================
+   工具
+========================================================= */
+const $ = s => document.querySelector(s);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+
+/* =========================================================
+   小猫 SVG
+========================================================= */
+function catSVG(mode){
+  const sleeping = mode === 'sleep';
+  const eyes = sleeping
+    ? `<path d="M39 51 q8 8 16 0" stroke="#4a3728" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+       <path d="M65 51 q8 8 16 0" stroke="#4a3728" stroke-width="2.8" fill="none" stroke-linecap="round"/>`
+    : `<ellipse cx="47" cy="53" rx="4.3" ry="5.6" fill="#4a3728"/>
+       <ellipse cx="73" cy="53" rx="4.3" ry="5.6" fill="#4a3728"/>
+       <circle cx="48.6" cy="50.6" r="1.8" fill="#fff"/>
+       <circle cx="74.6" cy="50.6" r="1.8" fill="#fff"/>`;
+
+  return `
+<svg viewBox="0 0 120 126" xmlns="http://www.w3.org/2000/svg">
+  <!-- 尾巴 -->
+  <path d="M86 104 C 110 104, 118 86, 108 72 C 103 65, 95 65, 91 71"
+        fill="none" stroke="#f0a868" stroke-width="11" stroke-linecap="round"/>
+  <!-- 身体 -->
+  <ellipse cx="60" cy="96" rx="33" ry="24" fill="#fbc78d"/>
+  <!-- 耳朵 -->
+  <path d="M34 42 L26 8 L56 26 Z" fill="#fbc78d" stroke="#f0a868" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M86 42 L94 8 L64 26 Z" fill="#fbc78d" stroke="#f0a868" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M38 35 L33 17 L50 27 Z" fill="#ffb3c1"/>
+  <path d="M82 35 L87 17 L70 27 Z" fill="#ffb3c1"/>
+  <!-- 头 -->
+  <circle cx="60" cy="56" r="31" fill="#fdd6a3"/>
+  <!-- 额头条纹 -->
+  <path d="M52 30 q3 7 0 13 M60 28 q3 8 0 14 M68 30 q-3 7 0 13"
+        stroke="#f0b878" stroke-width="3" fill="none" stroke-linecap="round" opacity=".85"/>
+  <!-- 腮红 -->
+  <ellipse cx="36" cy="65" rx="7.5" ry="5" fill="#ff9db0" opacity=".55"/>
+  <ellipse cx="84" cy="65" rx="7.5" ry="5" fill="#ff9db0" opacity=".55"/>
+  <!-- 眼睛 -->
+  ${eyes}
+  <!-- 鼻子 -->
+  <path d="M56 66 L64 66 L60 71 Z" fill="#f0788f"/>
+  <!-- 嘴巴 -->
+  <path d="M60 71 v3 M60 74 q-5 5 -9.5 0 M60 74 q5 5 9.5 0"
+        stroke="#c98a63" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- 胡须 -->
+  <path d="M29 59 H15 M29 66 H16 M91 59 H105 M91 66 H104"
+        stroke="#e6bb92" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- 爪子 -->
+  <ellipse cx="46" cy="115" rx="10" ry="6.5" fill="#fdd6a3"/>
+  <ellipse cx="74" cy="115" rx="10" ry="6.5" fill="#fdd6a3"/>
+</svg>`;
+}
+
+/* =========================================================
+   页面初始化：随机状态
+========================================================= */
+const VISITED_KEY = 'travel-cat-visited-v1';
+let visited = [];
+try { visited = JSON.parse(localStorage.getItem(VISITED_KEY) || '[]'); } catch(e){ visited = []; }
+
+let currentState, currentPlace = null;
+
+function init(){
+  currentState = pick(STATES);
+
+  if(currentState.key === 'travel'){
+    const notVisited = PLACES.filter(p => !visited.includes(p.name));
+    currentPlace = pick(notVisited.length ? notVisited : PLACES);
+    if(!visited.includes(currentPlace.name)){
+      visited.push(currentPlace.name);
+      try{ localStorage.setItem(VISITED_KEY, JSON.stringify(visited)); }catch(e){}
+    }
+  }
+
+  renderCat();
+  renderStatus();
+}
+
+function renderCat(){
+  document.querySelectorAll('.cat-wrap, .zzz, .suitcase').forEach(el => el.remove());
+
+  if(currentState.key === 'travel'){
+    const bag = document.createElement('div');
+    bag.className = 'suitcase';
+    bag.textContent = '🧳';
+    $('#downFloor').appendChild(bag);
+    return;
+  }
+
+  const pos = CAT_POS[currentState.key];
+  const floorEl = pos.floor === 'up' ? $('#upFloor') : $('#downFloor');
+
+  const wrap = document.createElement('div');
+  wrap.className = 'cat-wrap' + (currentState.key === 'sleep' ? ' sleep' : '');
+  wrap.style.left   = pos.left + 'px';
+  wrap.style.bottom = pos.bottom + 'px';
+  wrap.style.width  = pos.size + 'px';
+  wrap.innerHTML = catSVG(currentState.key);
+
+  if(currentState.key === 'sleep'){
+    wrap.innerHTML += '<span class="zzz z1">z</span><span class="zzz z2">z</span><span class="zzz z3">z</span>';
+  }
+
+  floorEl.appendChild(wrap);
+}
+
+function renderStatus(){
+  if(currentState.key === 'travel' && currentPlace){
+    $('#statusText').textContent =
+      `小猫出门旅行啦 —— 它现在在 ${currentPlace.name} ${currentPlace.emoji}`;
+  } else {
+    $('#statusText').textContent = currentState.tip;
+  }
+}
+
+/* =========================================================
+   弹窗基础
+========================================================= */
+const overlay = $('#overlay');
+const cardContent = $('#cardContent');
+
+function openCard(html){
+  cardContent.innerHTML = html;
+  overlay.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeCard(){
+  overlay.classList.remove('show');
+  document.body.style.overflow = '';
+}
+$('#closeBtn').addEventListener('click', closeCard);
+overlay.addEventListener('click', e => { if(e.target === overlay) closeCard(); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeCard(); });
+
+/* =========================================================
+   1. 小猫的信
+========================================================= */
+function randomDate(){
+  const d = new Date(Date.now() - Math.floor(Math.random() * 40) * 86400000);
+  return `${d.getMonth() + 1}月${d.getDate()}日`;
+}
+
+$('#btnLetter').addEventListener('click', () => {
+  const place = pick(PLACES);
+  const tpl = pick(LETTERS);
+  const text = tpl
+    .replace(/\{place\}/g, place.name)
+    .replace(/\{food\}/g,  pick(FOODS))
+    .replace(/\{thing\}/g, pick(THINGS));
+
+  openCard(`
+    <div class="card-head">
+      <span style="font-size:22px">💌</span> 小猫的信
+      <span class="stamp">${randomDate()} · 邮戳 🐾</span>
+    </div>
+    <div class="letter">${text}</div>
+    <div class="letter-from">📍 寄自 ${place.name} ${place.emoji}</div>
+  `);
+});
+
+/* =========================================================
+   2. 小猫的礼物
+========================================================= */
+$('#btnGift').addEventListener('click', () => {
+  const gift = pick(GIFTS);
+  const place = pick(PLACES);
+
+  openCard(`
+    <div class="card-head">
+      <span style="font-size:22px">🎁</span> 小猫带回来的礼物
+    </div>
+    <div class="gift-box">
+      <div class="gift-emoji">${gift.e}</div>
+      <div class="gift-name">${gift.n}</div>
+      <div class="gift-desc">${gift.d}</div>
+      <div class="gift-from">📍 带回自 ${place.name} ${place.emoji}</div>
+    </div>
+  `);
+});
+
+/* =========================================================
+   3. 旅行地图
+========================================================= */
+const WORLD_SVG = `
+<svg viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e4f3ff"/>
+      <stop offset="100%" stop-color="#c6e4fa"/>
+    </linearGradient>
+  </defs>
+  <rect width="1000" height="500" fill="url(#sea)"/>
+  <g fill="#b7dda6" stroke="#93c47d" stroke-width="2.5" stroke-linejoin="round">
+    <polygon points="100,78 200,58 268,96 276,140 246,178 214,198 196,262 152,242 132,178 92,140"/>
+    <polygon points="222,268 282,262 302,318 272,398 240,410 226,350 208,308"/>
+    <polygon points="448,78 540,68 572,108 540,150 480,162 448,130"/>
+    <polygon points="470,178 572,168 604,230 570,332 520,392 490,340 468,258"/>
+    <polygon points="580,68 832,58 872,118 820,180 758,200 700,232 640,198 590,150"/>
+    <polygon points="788,318 892,308 912,360 872,402 800,392 778,348"/>
+    <polygon points="418,52 452,44 462,66 430,72"/>
+    <polygon points="900,430 980,424 986,458 906,462" opacity=".8"/>
+  </g>
+</svg>`;
+
+$('#btnMap').addEventListener('click', () => {
+  const pins = visited.map((name, i) => {
+    const p = PLACES.find(x => x.name === name);
+    if(!p) return '';
+    const isNow = currentPlace && currentPlace.name === name;
+    return `<div class="pin" style="left:${p.x/10}%;top:${p.y/5}%;animation-delay:${i*0.06}s">
+      <span class="head">${isNow ? '🐱' : '🐾'}</span>
+      <span class="label">${p.name}</span>
+    </div>`;
+  }).join('');
+
+  const empty = visited.length === 0
+    ? `<div class="map-empty">小猫还趴在窗台上，哪儿都没去呢～<br>下次再来看看吧 🐾</div>`
+    : '';
+
+  openCard(`
+    <div class="card-head">
+      <span style="font-size:22px">🗺️</span> 小猫的旅行地图
+      <span class="stamp">已点亮 ${visited.length} 个地方</span>
+    </div>
+    <div class="map-box">
+      ${WORLD_SVG}
+      ${pins}
+      ${empty}
+    </div>
+    <div class="map-foot">
+      ${currentPlace
+        ? `🐱 小猫现在正在 <b>${currentPlace.name}</b> ${currentPlace.emoji}`
+        : `🐱 小猫现在在家，正窝在暖暖的屋子里`}
+    </div>
+  `);
+});
+
+/* =========================================================
+   启动
+========================================================= */
+init();
+</script>
+</body>
+                                    </html>
